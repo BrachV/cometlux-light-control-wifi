@@ -15,7 +15,7 @@ namespace LightControlWifi
         #region définition des variables
 
         public string ip = ConfigurationManager.AppSettings["esp32-ip"];
-        //C_SQL bdd = new C_SQL(ConfigurationManager.AppSettings["host"], ConfigurationManager.AppSettings["user"], ConfigurationManager.AppSettings["mdp"], ConfigurationManager.AppSettings["database"], ConfigurationManager.AppSettings["port"]);
+        C_SQL bdd = new C_SQL(ConfigurationManager.AppSettings["host"], ConfigurationManager.AppSettings["user"], ConfigurationManager.AppSettings["mdp"], ConfigurationManager.AppSettings["database"], ConfigurationManager.AppSettings["port"]);
         DataTable data = new DataTable();
 
         #endregion fin de définition des variables
@@ -45,20 +45,20 @@ namespace LightControlWifi
             {
                 int temp = 1;
                 requete = "SELECT * FROM `lampe` WHERE type = 'WIFI';";
-                //DataTable projecteurs;
-                //foreach (DataRow row in projecteurs.Rows)
-                //{
-                //    // modifie l'état de la lampe sur la carte arduino
-                //    RequeteHttp($"http://{ip}/P?lum={row["luminosite"]}&id={temp}");
+                DataTable projecteurs;
+                foreach (DataRow row in projecteurs.Rows)
+                {
+                    // modifie l'état de la lampe sur la carte arduino
+                    RequeteHttp($"http://{ip}/P?lum={row["luminosite"]}&id={temp}");
 
-                //    // crée un logs pour cette modification
-                //    Logs(idLampe: Int32.Parse($"{row["id"]}"), description: "La lampe est à présent allumé.");
-                //    temp++;
-                //}
+                    // crée un logs pour cette modification
+                    Logs(idLampe: Int32.Parse($"{row["id"]}"), description: "La lampe est à présent allumé.");
+                    temp++;
+                }
 
                 // modifie la base de données
                 requete = $"UPDATE lampe SET etat = '1' WHERE `type` = 'WIFI'";
-                //bdd.exec_commande(requete);
+                bdd.exec_commande(requete);
 
                 // arrête la fonction ici
                 return;
@@ -66,19 +66,19 @@ namespace LightControlWifi
 
             // récupère la luminosité stocké dans la base de données
             requete = $"SELECT `luminosite` FROM `lampe` WHERE `id` = '{id}';";
-            //dt = bdd.exec_commande(requete);
-            //dr = dt.CreateDataReader();
+            dt = bdd.exec_commande(requete);
+            dr = dt.CreateDataReader();
 
             // lecture de la première ligne récupérée
-            ////dr.Read();
-            //int luminosite = (int)dr["luminosite"];
+            dr.Read();
+            int luminosite = (int)dr["luminosite"];
 
-            //// modifie l'état de la lampe sur la carte arduino
-            //RequeteHttp($"http://{ip}/P?lum={luminosite}&id={index}");
+            // modifie l'état de la lampe sur la carte arduino
+            RequeteHttp($"http://{ip}/P?lum={luminosite}&id={index}");
 
-            //// modifie l'état dans la base de données
-            //requete = $"UPDATE lampe SET etat = '1' WHERE id = '{id}';";
-            ////bdd.exec_commande(requete);
+            // modifie l'état dans la base de données
+            requete = $"UPDATE lampe SET etat = '1' WHERE id = '{id}';";
+            bdd.exec_commande(requete);
         }
 
         public void Eteindre(int index, int id)
@@ -112,7 +112,7 @@ namespace LightControlWifi
 
                 // modifie la base de données
                 requete = $"UPDATE lampe SET etat = '0' WHERE type = 'WIFI'";
-                //bdd.exec_commande(requete);
+                bdd.exec_commande(requete);
 
                 // arrête la fonction ici
                 return;
@@ -123,7 +123,7 @@ namespace LightControlWifi
 
             // modifie l'état dans la base de données
             requete = $"UPDATE lampe SET etat = '0' WHERE id = '{id}';";
-            //bdd.exec_commande(requete);
+            bdd.exec_commande(requete);
         }
         public void ChangerLuminosite(int puissance, int index, int id)
         {
@@ -157,7 +157,7 @@ namespace LightControlWifi
 
                 // modifie la base de données
                 requete = $"UPDATE lampe SET luminosite = '{puissance}' WHERE type = 'WIFI'";
-                //bdd.exec_commande(requete);
+                bdd.exec_commande(requete);
 
                 // arrête la fonction ici
                 return;
@@ -168,11 +168,11 @@ namespace LightControlWifi
 
             // modifie la luminosité dans la base de données
             requete = $"UPDATE lampe SET luminosite = '{puissance}' WHERE id = '{id}';";
-            //bdd.exec_commande(requete);
+            bdd.exec_commande(requete);
         }
         public void Logs(int idLampe, string description)
         {
-            //bdd.exec_commande($"INSERT INTO logs(`lampe_id`, `description`, `source`) VALUES ('{idLampe}','{description}','Application Logiciel');");
+            bdd.exec_commande($"INSERT INTO logs(`lampe_id`, `description`, `source`) VALUES ('{idLampe}','{description}','Application Logiciel');");
         }
 
         // vérifie si il est possible de communiquer avec la carte esp32
@@ -202,8 +202,8 @@ namespace LightControlWifi
             request.Method = "POST";
 
             var webResponse = request.GetResponse();
-            //var webStream = webResponse.GetResponseStream();
-            //var reader = new StreamReader(webStream);
+            var webStream = webResponse.GetResponseStream();
+            var reader = new StreamReader(webStream);
             //var data = reader.ReadToEnd();
         }
 
